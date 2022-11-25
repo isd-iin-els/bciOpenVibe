@@ -7,6 +7,8 @@ import os,json
 
 sensorTopic = ""
 sensorBuffer = []
+sizeBuffer = 0
+
 
 def on_connect2(client, userdata, flags, rc):
 	print('connected Mqtt Input')
@@ -14,17 +16,26 @@ def on_connect2(client, userdata, flags, rc):
 	client2.publish('requestStart','1')
 	
 def on_message2(client, userdata, msg):
-	global sensorTopic
-	
-	#print(sensorTopic,msg.topic)
-	if msg.topic == 'webCommand':
-		msgDict = json.loads(msg.payload)
-		sensorTopic = "dev"+str(msgDict['sensor'])+'ss'
-		client2.subscribe(sensorTopic)
-		#print("***webcommand, ",sensorTopic)
-	elif sensorTopic in msg.topic:
-		data = msg.payload.decode('utf8').replace(';\n','').split(',')
-		sensorBuffer.append(float(data[0]))
+  global sensorTopic
+
+  #print(sensorTopic,msg.topic)
+  if msg.topic == 'webCommand':
+    msgDict = json.loads(msg.payload)
+    sensorTopic = "dev"+str(msgDict['sensor'])+'ss'
+    client2.subscribe(sensorTopic)
+    print("***webcommand, ",sensorTopic)
+  elif sensorTopic in msg.topic:
+    data = msg.payload.decode('utf8').replace(';\n','').split(',')
+    for i in range(len(data)):
+          data[i] = float(data[i])
+    if len(sensorBuffer) > 1:
+      #print('Teste3: ', len(sensorBuffer))
+      if data[0] != sensorBuffer[-1][0]: 
+        sensorBuffer.append(data[0:sizeBuffer])
+        #print('Teste2: ', len(sensorBuffer))
+    else:
+        sensorBuffer.append(data[0:sizeBuffer])
+        #print('Teste1: ', len(sensorBuffer))
 
 client2 = mqtt.Client()    # Identificacao do Cliente
     # client.username_pw_set(username="minibike",password="minibike2021")     # Usuario e senha do broker
@@ -59,7 +70,8 @@ class MyOVBox(OVBox):
       self.channelCount = int(self.setting['Channel count'])
       self.samplingFrequency = int(self.setting['Sampling frequency'])
       self.epochSampleCount = int(self.setting['Generated epoch sample count'])
-
+      global sizeBuffer
+      sizeBuffer = self.channelCount 
       #creation of the signal header
       for i in range(self.channelCount):
          self.dimensionLabels.append( 'Sinus'+str(i) )
@@ -84,9 +96,11 @@ class MyOVBox(OVBox):
       self.timeBuffer = numpy.arange(self.startTime, self.endTime, 1./self.samplingFrequency)
 
     def updateSignalBuffer(self):
+      if len(sensorBuffer) > 0: 
+        temp = sensorBuffer.pop()
       for rowIndex, row in enumerate(self.signalBuffer):
           if len(sensorBuffer) > 0:
-            self.signalBuffer[rowIndex,:] = sensorBuffer.pop()
+            self.signalBuffer[rowIndex,:] = temp[rowIndex]
           else:
               print("Sem dados MQTT")
 

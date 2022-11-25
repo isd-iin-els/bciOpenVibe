@@ -5,33 +5,46 @@ import time
 import struct
 import os,json
 
-sensorTopic = ""
-sensorBuffer = []
+sensorTopic3 = ""
+sensorBuffer3 = []
+sizeBuffer3 = 0
 
-def on_connect2(client, userdata, flags, rc):
+
+def on_connect3(client, userdata, flags, rc):
 	print('connected Mqtt Input')
-	client2.subscribe('webCommand')
-	client2.publish('requestStart','1')
+	client3.subscribe('webCommand')
+	client3.publish('requestStart','1')
 	
-def on_message2(client, userdata, msg):
-	global sensorTopic
-	
-	#print(sensorTopic,msg.topic)
-	if msg.topic == 'webCommand':
-		msgDict = json.loads(msg.payload)
-		sensorTopic = "dev"+str(msgDict['sensor'])+'ss'
-		client2.subscribe(sensorTopic)
-		#print("***webcommand, ",sensorTopic)
-	elif sensorTopic in msg.topic:
-		data = msg.payload.decode('utf8').replace(';\n','').split(',')
-		sensorBuffer.append(float(data[0]))
+def on_message3(client, userdata, msg):
+  global sensorTopic3
 
-client2 = mqtt.Client()    # Identificacao do Cliente
+  #print(sensorTopic3,msg.topic)
+  if msg.topic == 'webCommand':
+    msgDict = json.loads(msg.payload)
+    sensorTopic3 = "cmd2dev"+str(msgDict['stim1'])
+    client3.subscribe(sensorTopic3)
+    #print("***webcommand, ",sensorTopic3)
+  elif sensorTopic3 in msg.topic:
+    data = json.loads(msg.payload)
+    #print(data)
+    data = data['m'].split(',')
+    for i in range(len(data)):
+          data[i] = float(data[i])
+    if len(sensorBuffer3) > 1:
+      #print('Teste3: ', len(sensorBuffer3))
+      if data[0] != sensorBuffer3[-1][0]: 
+        sensorBuffer3.append(data[0:sizeBuffer3])
+        #print('Teste2: ', len(sensorBuffer3))
+    else:
+        sensorBuffer3.append(data[0:sizeBuffer3])
+        #print('Teste1: ', len(sensorBuffer3))
+
+client3 = mqtt.Client()    # Identificacao do Cliente
     # client.username_pw_set(username="minibike",password="minibike2021")     # Usuario e senha do broker
-client2.on_connect = on_connect2
-client2.on_message = on_message2
-#   //client.subscribe(sensorTopic)
-client2.connect('10.1.0.44',1883)
+client3.on_connect = on_connect3
+client3.on_message = on_message3
+#   //client.subscribe(sensorTopic3)
+client3.connect('10.1.0.44',1883)
 
 
 
@@ -52,14 +65,15 @@ class MyOVBox(OVBox):
 
    # this time we also re-define the initialize method to directly prepare the header and the first data chunk
     def initialize(self):
-      self.t1 = threading.Thread(target = client2.loop_forever)
+      self.t1 = threading.Thread(target = client3.loop_forever)
       self.t1.start()
       print("Inicializou")
       # settings are retrieved in the dictionary
       self.channelCount = int(self.setting['Channel count'])
       self.samplingFrequency = int(self.setting['Sampling frequency'])
       self.epochSampleCount = int(self.setting['Generated epoch sample count'])
-
+      global sizeBuffer3
+      sizeBuffer3 = self.channelCount 
       #creation of the signal header
       for i in range(self.channelCount):
          self.dimensionLabels.append( 'Sinus'+str(i) )
@@ -84,9 +98,11 @@ class MyOVBox(OVBox):
       self.timeBuffer = numpy.arange(self.startTime, self.endTime, 1./self.samplingFrequency)
 
     def updateSignalBuffer(self):
+      if len(sensorBuffer3) > 0: 
+        temp = sensorBuffer3.pop()
       for rowIndex, row in enumerate(self.signalBuffer):
-          if len(sensorBuffer) > 0:
-            self.signalBuffer[rowIndex,:] = sensorBuffer.pop()
+          if len(sensorBuffer3) > 0:
+            self.signalBuffer[rowIndex,:] = temp[rowIndex]
           else:
               print("Sem dados MQTT")
 
@@ -98,8 +114,8 @@ class MyOVBox(OVBox):
 
    # the process is straightforward
     def process(self):
-        # if len(sensorBuffer) > 0:
-        #     self.output[0].append(sensorBuffer.pop())
+        # if len(sensorBuffer3) > 0:
+        #     self.output[0].append(sensorBuffer3.pop())
         # else:
         #     print("Sem dados MQTT")
        

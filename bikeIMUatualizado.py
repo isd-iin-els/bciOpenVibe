@@ -21,7 +21,7 @@ class saveIMUMQTTData(mqtt.Client):
 
     def connectSensor(self,sensorNumber,actuatorNumber,simulationTime=6000,frequence=20,sensorType = 2):
 
-        self.connect('10.1.1.169', 1883, 600)
+        self.connect('10.1.0.44', 1883, 600)
         self.ssTopic = 'dev'+sensorNumber+'ss'
         self.cmdTopicSensor = 'cmd2dev'+sensorNumber
         self.cmdTopic = 'cmd2dev'+actuatorNumber
