@@ -4,10 +4,11 @@ import sys,threading
 import time
 import struct
 import os,json
+from random import randrange
 
 #sensorBuffer1 = [0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,3,0,1,2,3,4]
-
-sensorBuffer1 = [30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30]
+sensorBuffer1=[]
+#sensorBuffer1 = [30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30]
 
 class MyOVBox(OVBox):
 
@@ -23,6 +24,7 @@ class MyOVBox(OVBox):
       self.timeBuffer = list()
       self.signalBuffer = None
       self.signalHeader = None
+      
 
    # this time we also re-define the initialize method to directly prepare the header and the first data chunk
     def initialize(self):
@@ -30,6 +32,10 @@ class MyOVBox(OVBox):
       self.channelCount = int(self.setting['Channel count'])
       self.samplingFrequency = int(self.setting['Sampling frequency'])
       self.epochSampleCount = int(self.setting['Generated epoch sample count'])
+      global sensorBuffer1
+      temp = str(self.setting['RPM']).split(',')
+      for item in temp:
+          sensorBuffer1.append(float(item))
 
       #creation of the signal header
       for i in range(self.channelCount):
@@ -56,10 +62,10 @@ class MyOVBox(OVBox):
 
     def updateSignalBuffer(self):
       for rowIndex, row in enumerate(self.signalBuffer):
-          if len(sensorBuffer1) > 0:
-            self.signalBuffer[rowIndex,:] = sensorBuffer1.pop()
-          else:
-              print("Sem dados MQTT")
+          # if len(sensorBuffer1) > 0:
+          self.signalBuffer[rowIndex,:] = sensorBuffer1[randrange(len(sensorBuffer1))]
+          # else:
+              # print("Sem dados MQTT")
 
     def sendSignalBufferToOpenvibe(self):
       start = self.timeBuffer[0]
