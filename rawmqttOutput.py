@@ -17,6 +17,7 @@ class MyOVBox(OVBox):
 	def initialize(self):
 		self.mqttHost = str(self.setting['MQTTHost'])
 		self.mqttPort = int(self.setting['MQTTPort'])
+		self.topic = str(self.setting['topic'])
 		
 		client.connect(self.mqttHost,self.mqttPort)
 		self.t1 = threading.Thread(target = client.loop_forever)
@@ -28,7 +29,7 @@ class MyOVBox(OVBox):
 			#print(start)
 		for chunkIdx in range( len(self.input[0]) ):
 			chunk = self.input[0].pop()
-			client.publish('openviberawoutput',str(chunk).replace('[','').replace(']',''))
+			client.publish(self.topic,str(chunk).replace('[','').replace(']',''))
 		return
 		
 	def uninitialize(self):
