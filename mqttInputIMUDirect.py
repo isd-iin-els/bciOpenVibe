@@ -132,5 +132,6 @@ class MyOVBox(OVBox):
     self.output[0].append(OVSignalEnd(end, end))
     stopIMUStream(self.client) 
     del self.client
+    self.t1.join()
 
 box = MyOVBox()
