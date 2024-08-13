@@ -8,6 +8,7 @@ class saveIMUMQTTData(mqtt.Client):
         msg2send['frequence'] = self.frequence
         msg2send['sensorType'] = self.sensorType
         print('requestIMUStream: ', self.cmdTopicSensor)
+        print(json.dumps(msg2send))
         self.publish(self.cmdTopicSensor,json.dumps(msg2send))
 
     def stopIMUStream(self):
@@ -21,7 +22,7 @@ class saveIMUMQTTData(mqtt.Client):
 
     def connectSensor(self,sensorNumber,actuatorNumber,simulationTime=6000,frequence=20,sensorType = 2):
 
-        self.connect('10.1.0.44', 1883, 600)
+        self.connect('10.1.0.18', 1883, 600)
         self.ssTopic = 'dev'+sensorNumber+'ss'
         self.cmdTopicSensor = 'cmd2dev'+sensorNumber
         self.cmdTopic = 'cmd2dev'+actuatorNumber
@@ -62,6 +63,7 @@ class saveIMUMQTTData(mqtt.Client):
         self.subscribe(self.ssTopic)
         self.subscribe('webCommand')
         self.subscribe('start')
+        self.requestIMUStream()
     
     def on_connect_fail(self, mqttc, obj):
         print("Connect failed")

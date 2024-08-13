@@ -6,7 +6,7 @@
 #  --  Stimulation codes                                                  --
 #  --  Originally from openvibe-toolkit/ovtk_defines.h                    --
 
-OVTK_StimulationId_ExperimentStart                    = 0x00008001
+
 OVTK_StimulationId_ExperimentStop                     = 0x00008002
 OVTK_StimulationId_SegmentStart                       = 0x00008003
 OVTK_StimulationId_SegmentStop                        = 0x00008004
