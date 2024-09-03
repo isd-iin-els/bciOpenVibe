@@ -77,7 +77,7 @@ class MyOVBox(OVBox):
 
 #creation of the signal header
     for i in range(self.channelCount):
-      self.dimensionLabels.append( 'IMU'+str(i) )
+      self.dimensionLabels.append( 'Sensor'+str(i) )
     self.dimensionLabels += self.epochSampleCount*['']
     self.dimensionSizes = [self.channelCount, self.epochSampleCount]
     self.signalHeader = OVSignalHeader(0., 0., self.dimensionSizes, self.dimensionLabels, self.samplingFrequency)
